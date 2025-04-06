@@ -2,28 +2,21 @@
 import { books, authors, genres} from './data.js';
 import Elements from './elements.js';
 import Book from './book.js';
+import EventListeners from './eventListeners.js';
 
 //Encapsulation
 const uiElements = new Elements();
 // Destructuring the elements object to simplify access
-const {
-    headerSearchIcon,
-    headerSettingsIcon,
-    searchOverlay,
-    searchForm,
+const 
+{
+
     settingsTheme,
-    searchCancelButton,
-    searchTitleInput,
     searchGenresSelect,
     searchAuthorsSelect,
     settingsOverlay,
     settingsForm,
-    settingsCancelButton,
     bookListItems,
-    listCloseButton,
-    listActive,
     showListButton,
-    showListMessage,
 } = uiElements.elements;
 
 /*--------------------------------------------------Book Object-------------------------------------------- */
@@ -111,42 +104,7 @@ const ThemeManager = {
 
 /*-----------------------------------------------Event Listeners for UI (Cards) Interactions--------------------------------------------------------- */
 
-searchCancelButton.addEventListener('click', () => {
-    searchOverlay.open = false;
-});
-settingsCancelButton.addEventListener('click', () => {
-    settingsOverlay.open = false;
-});
-
-headerSearchIcon.addEventListener('click', () => {
-    searchOverlay.open = true;
-    searchTitleInput.focus();
-});
-headerSettingsIcon.addEventListener('click', () => {
-    settingsOverlay.open = true;
-});
-
-searchForm.addEventListener('submit', (event) => {
-    book.search(
-        event,
-        books,
-        bookListItems,
-        showListMessage,
-        showListButton
-    );
-});
-
-bookListItems.addEventListener('click', (event) => {book.summaryCard(event)});
-
-showListButton.addEventListener('click', () => {
-    book.ShowMore(
-        showListButton,
-        bookListItems,
-    );
-});
-listCloseButton.addEventListener('click', () => {
-    listActive.open = false;
-});
+new EventListeners(book, books,Elements);
 
 /*----------------------------------------------------Main Program Execution--------------------------------------------------------- */
 /**

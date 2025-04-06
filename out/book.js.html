@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: book.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: book.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>// Import the BookPreview Web Component
+import "./bookPreview.js";
+
+/**
+ * Book class handles rendering book previews, managing search filters,
+ * pagination, and dropdown generation in a modular way.
+ */
+export default class Book {
+  #page = 1;
+  #matches = [];
+
+  /**
+   * @param {Array} books - Array of book objects
+   * @param {Object} authors - Object mapping author IDs to names
+   * @param {Object} genres - Object mapping genre IDs to names
+   * @param {number} BOOKS_PER_PAGE - Number of books to display per page
+   * @param {Function} Elements - Class constructor that returns a DOM elements object
+   */
+  constructor(books, authors, genres, BOOKS_PER_PAGE, Elements) {
+    this.books = books;
+    this.authors = authors;
+    this.genres = genres;
+    this.booksPerPage = BOOKS_PER_PAGE;
+
+    this.elements = new Elements().elements;
+    this.init();
+  }
+
+  /** @returns {number} - Current page number */
+  get page() {
+    return this.#page;
+  }
+
+  /** Increments the current page number by 1 */
+  incrementPage() {
+    this.#page += 1;
+  }
+
+  /** Resets the current page number to 1 */
+  resetPage() {
+    this.#page = 1;
+  }
+
+  /** @returns {Array} - Filtered list of books */
+  get matches() {
+    return this.#matches;
+  }
+
+  /** @param {Array} newMatches - New filtered list of books */
+  set matches(newMatches) {
+    this.#matches = newMatches;
+  }
+
+  /**
+   * Initializes the app: renders book previews and dropdown filters.
+   */
+  init() {
+    this.#matches = this.books;
+
+    const bookFragment = this.render();
+    const createGenreDropdown = this.genreDropdown(this.genres);
+    const createAuthorDropdown = this.authorDropdown(this.authors);
+
+    this.elements.bookListItems.appendChild(bookFragment);
+    this.elements.searchGenresSelect.appendChild(createGenreDropdown);
+    this.elements.searchAuthorsSelect.appendChild(createAuthorDropdown);
+    this.updateShowMoreButton();
+  }
+
+  /**
+   * Creates a `book-preview` element.
+   * @param {Object} book - A book object
+   * @param {Object} authors - Mapping of author IDs to names
+   * @returns {HTMLElement} - A `book-preview` element
+   */
+  createBookElement({ author, id, image, title }, authors) {
+    const bookPreview = document.createElement("book-preview");
+    bookPreview.setAttribute("id", id);
+    bookPreview.setAttribute("image", image);
+    bookPreview.setAttribute("title", title);
+    bookPreview.setAttribute("author", authors[author]);
+    return bookPreview;
+  }
+
+  /**
+   * Renders a fragment containing the first page of books.
+   * @returns {DocumentFragment}
+   */
+  render() {
+    const fragment = document.createDocumentFragment();
+    this.books.slice(0, this.booksPerPage).forEach((book) => {
+      fragment.appendChild(this.createBookElement(book, this.authors));
+    });
+    return fragment;
+  }
+
+  /**
+   * Creates a dropdown menu from a list of options.
+   * @param {Object} options - Key-value pairs for dropdown options
+   * @param {string} firstOptionText - The default top option text
+   * @returns {DocumentFragment}
+   */
+  createDropdown(options, firstOptionText) {
+    const dropdownHtml = document.createDocumentFragment();
+    const firstElement = document.createElement("option");
+    firstElement.value = "any";
+    firstElement.innerText = firstOptionText;
+    dropdownHtml.appendChild(firstElement);
+
+    Object.entries(options).forEach(([id, name]) => {
+      const element = document.createElement("option");
+      element.value = id;
+      element.innerText = name;
+      dropdownHtml.appendChild(element);
+    });
+
+    return dropdownHtml;
+  }
+
+  /** @param {Object} genres - Genre options */
+  genreDropdown(genres) {
+    return this.createDropdown(genres, "All Genres");
+  }
+
+  /** @param {Object} authors - Author options */
+  authorDropdown(authors) {
+    return this.createDropdown(authors, "All Authors");
+  }
+
+  /**
+   * Filters the books based on user input from the search form.
+   * @param {Event} event - Form submit event
+   */
+  search(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const filters = Object.fromEntries(formData);
+
+    const result = this.books.filter((singleBook) => {
+      const genreMatch =
+        filters.genre === "any" || singleBook.genres.includes(filters.genre);
+      const titleMatch =
+        !filters.title.trim() ||
+        singleBook.title.toLowerCase().includes(filters.title.toLowerCase());
+      const authorMatch =
+        filters.author === "any" || singleBook.author === filters.author;
+      return genreMatch &amp;&amp; titleMatch &amp;&amp; authorMatch;
+    });
+
+    this.resetPage();
+    this.matches = result;
+
+    this.elements.showListMessage.classList.toggle(
+      "list__message_show",
+      result.length &lt; 1,
+    );
+    this.elements.bookListItems.innerHTML = "";
+
+    const newItems = document.createDocumentFragment();
+    result.slice(0, this.booksPerPage).forEach((book) => {
+      newItems.appendChild(this.createBookElement(book, this.authors));
+    });
+
+    this.elements.bookListItems.appendChild(newItems);
+    this.updateShowMoreButton();
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    this.elements.searchOverlay.open = false;
+  }
+
+  /**
+   * Updates the "Show more" button state and label based on remaining books.
+   */
+  updateShowMoreButton() {
+    const remainingBooks = this.matches.length - this.page * this.booksPerPage;
+    this.elements.showListButton.innerHTML = `
+            &lt;span>Show more&lt;/span>
+            &lt;span class="list__remaining"> (${remainingBooks > 0 ? remainingBooks : 0})&lt;/span>
+        `;
+    this.elements.showListButton.disabled = remainingBooks &lt;= 0;
+  }
+
+  /**
+   * Displays the summary modal of a selected book.
+   * @param {Event} event - Click event on a book preview
+   */
+  summaryCard(event) {
+    const pathArray = Array.from(event.path || event.composedPath());
+    let active = null;
+
+    for (const node of pathArray) {
+      if (node?.dataset?.preview) {
+        active = this.books.find((book) => book.id === node.dataset.preview);
+        if (active) break;
+      }
+    }
+
+    if (active) {
+      this.elements.listActive.open = true;
+      this.elements.bookListBlur.src = active.image;
+      this.elements.bookListImage.src = active.image;
+      this.elements.bookListTitle.innerText = active.title;
+      this.elements.bookListSubtitle.innerText = `${this.authors[active.author]} (${new Date(active.published).getFullYear()})`;
+      this.elements.bookListDescription.innerText = active.description;
+    }
+  }
+
+  /**
+   * Appends the next page of books to the current list.
+   */
+  showMore() {
+    const fragment = document.createDocumentFragment();
+
+    this.matches
+      .slice(this.page * this.booksPerPage, (this.page + 1) * this.booksPerPage)
+      .forEach((book) => {
+        fragment.appendChild(this.createBookElement(book, this.authors));
+      });
+
+    this.elements.bookListItems.appendChild(fragment);
+    this.incrementPage();
+    this.updateShowMoreButton();
+  }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BookPreview.html">BookPreview</a></li><li><a href="module.exports.html">exports</a></li></ul><h3>Global</h3><ul><li><a href="global.html#applyTheme">applyTheme</a></li><li><a href="global.html#authorDropdown">authorDropdown</a></li><li><a href="global.html#createBookElement">createBookElement</a></li><li><a href="global.html#createDropdown">createDropdown</a></li><li><a href="global.html#genreDropdown">genreDropdown</a></li><li><a href="global.html#handleThemeChange">handleThemeChange</a></li><li><a href="global.html#incrementPage">incrementPage</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#matches">matches</a></li><li><a href="global.html#page">page</a></li><li><a href="global.html#render">render</a></li><li><a href="global.html#resetPage">resetPage</a></li><li><a href="global.html#search">search</a></li><li><a href="global.html#showMore">showMore</a></li><li><a href="global.html#summaryCard">summaryCard</a></li><li><a href="global.html#updateShowMoreButton">updateShowMoreButton</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sun Apr 06 2025 16:16:03 GMT+0200 (South Africa Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

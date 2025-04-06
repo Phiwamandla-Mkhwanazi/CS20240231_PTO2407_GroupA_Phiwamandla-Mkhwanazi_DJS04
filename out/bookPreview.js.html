@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: bookPreview.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: bookPreview.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * `book-preview` is a custom Web Component that displays a book preview card.
+ * It shows the book's image, title, and author inside a styled button element.
+ *
+ * Attributes:
+ * - `image`: The URL of the book's cover image.
+ * - `title`: The title of the book.
+ * - `author`: The author's name.
+ * - `id`: The unique identifier of the book (used in `data-preview` attribute).
+ *
+ * Example usage in HTML:
+ * ```html
+ * &lt;book-preview
+ *    image="cover.jpg"
+ *    title="Book Title"
+ *    author="Author Name"
+ *    id="book123">
+ * &lt;/book-preview>
+ * ```
+ */
+class BookPreview extends HTMLElement {
+  constructor() {
+    super();
+    /** Attaches a shadow DOM to encapsulate styles and markup */
+    this.attachShadow({ mode: "open" });
+  }
+
+  /**
+   * Called when the element is added to the DOM.
+   * Sets up the inner HTML structure and styles using the provided attributes.
+   */
+  connectedCallback() {
+    const image = this.getAttribute("image");
+    const title = this.getAttribute("title");
+    const author = this.getAttribute("author");
+    const id = this.getAttribute("id");
+
+    this.shadowRoot.innerHTML = `
+          &lt;style>
+              /* Copied from the given styles file */
+
+              .preview {
+                  border-width: 0;
+                  width: 100%;
+                  font-family: Roboto, sans-serif;
+                  padding: 0.5rem 1rem;
+                  display: flex;
+                  align-items: center;
+                  cursor: pointer;
+                  text-align: left;
+                  border-radius: 8px;
+                  border: 1px solid rgba(var(--color-dark), 0.15);
+                  background: rgba(var(--color-light), 1);
+              }
+
+              @media (min-width: 60rem) {
+                  .preview {
+                      padding: 1rem;
+                  }
+              }
+
+              .preview_hidden {
+                  display: none;
+              }
+
+              .preview:hover {
+                  background: rgba(var(--color-blue), 0.05);
+              }
+
+              .preview__image {
+                  width: 48px;
+                  height: 70px;
+                  object-fit: cover;
+                  background: grey;
+                  border-radius: 2px;
+                  box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.2),
+                              0px 1px 1px 0px rgba(0, 0, 0, 0.1),
+                              0px 1px 3px 0px rgba(0, 0, 0, 0.1);
+              }
+
+              .preview__info {
+                  padding: 1rem;
+              }
+
+              .preview__title {
+                  margin: 0 0 0.5rem;
+                  font-weight: bold;
+                  display: -webkit-box;
+                  -webkit-line-clamp: 2;
+                  -webkit-box-orient: vertical;  
+                  overflow: hidden;
+                  color: rgba(var(--color-dark), 0.8);
+              }
+
+              .preview__author {
+                  color: rgba(var(--color-dark), 0.4);
+              }
+          &lt;/style>
+
+          &lt;button class="preview" data-preview="${id}">
+              &lt;img class="preview__image" src="${image}" alt="${title}">
+              &lt;div class="preview__info">
+                  &lt;h3 class="preview__title">${title}&lt;/h3>
+                  &lt;div class="preview__author">${author}&lt;/div>
+              &lt;/div>
+          &lt;/button>
+      `;
+  }
+}
+
+// Register the custom element with the browser
+customElements.define("book-preview", BookPreview);
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BookPreview.html">BookPreview</a></li><li><a href="module.exports.html">exports</a></li></ul><h3>Global</h3><ul><li><a href="global.html#applyTheme">applyTheme</a></li><li><a href="global.html#authorDropdown">authorDropdown</a></li><li><a href="global.html#createBookElement">createBookElement</a></li><li><a href="global.html#createDropdown">createDropdown</a></li><li><a href="global.html#genreDropdown">genreDropdown</a></li><li><a href="global.html#handleThemeChange">handleThemeChange</a></li><li><a href="global.html#incrementPage">incrementPage</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#matches">matches</a></li><li><a href="global.html#page">page</a></li><li><a href="global.html#render">render</a></li><li><a href="global.html#resetPage">resetPage</a></li><li><a href="global.html#search">search</a></li><li><a href="global.html#showMore">showMore</a></li><li><a href="global.html#summaryCard">summaryCard</a></li><li><a href="global.html#updateShowMoreButton">updateShowMoreButton</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sun Apr 06 2025 16:16:03 GMT+0200 (South Africa Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

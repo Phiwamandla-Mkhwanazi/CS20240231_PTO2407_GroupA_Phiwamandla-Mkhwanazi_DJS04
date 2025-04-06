@@ -1,56 +1,78 @@
-//import the book preview class for the web component
+// Import the BookPreview Web Component
 import './bookPreview.js'
+
+/**
+ * Book class handles rendering book previews, managing search filters, 
+ * pagination, and dropdown generation in a modular way.
+ */
 export default class Book {
     #page = 1;
     #matches = [];
 
-    constructor(books, authors,genres, BOOKS_PER_PAGE, Elements) {
+    /**
+     * @param {Array} books - Array of book objects
+     * @param {Object} authors - Object mapping author IDs to names
+     * @param {Object} genres - Object mapping genre IDs to names
+     * @param {number} BOOKS_PER_PAGE - Number of books to display per page
+     * @param {Function} Elements - Class constructor that returns a DOM elements object
+     */
+    constructor(books, authors, genres, BOOKS_PER_PAGE, Elements) {
         this.books = books;
         this.authors = authors;
         this.genres = genres;
         this.booksPerPage = BOOKS_PER_PAGE;
 
-        this.elements = new Elements().elements; // Initialize elements from the passed Elements class
-        this.init(); // Initialize the UI elements and render the first page
+        this.elements = new Elements().elements;
+        this.init();
     }
 
+    /** @returns {number} - Current page number */
     get page() {
         return this.#page;
     }
 
+    /** Increments the current page number by 1 */
     incrementPage() {
         this.#page += 1;
     }
 
+    /** Resets the current page number to 1 */
     resetPage() {
         this.#page = 1;
     }
 
+    /** @returns {Array} - Filtered list of books */
     get matches() {
         return this.#matches;
     }
 
+    /** @param {Array} newMatches - New filtered list of books */
     set matches(newMatches) {
         this.#matches = newMatches;
     }
 
+    /**
+     * Initializes the app: renders book previews and dropdown filters.
+     */
     init() {
         this.#matches = this.books;
-        const bookFragment = this.render(); // Render books for the first page
-        const createGenreDropdown = this.genreDropdown(this.genres); // Create the genre dropdown menu
-        const createAuthorDropdown = this.authorDropdown(this.authors); // Create the author dropdown menu
 
-        // Append the rendered book listings to the UI
+        const bookFragment = this.render();
+        const createGenreDropdown = this.genreDropdown(this.genres);
+        const createAuthorDropdown = this.authorDropdown(this.authors);
+
         this.elements.bookListItems.appendChild(bookFragment);
-
-        // Append the genre and author dropdown menus to the search form
         this.elements.searchGenresSelect.appendChild(createGenreDropdown);
         this.elements.searchAuthorsSelect.appendChild(createAuthorDropdown);
-
-        // Update the "Show More" button with the correct remaining items based on the current page and total matches
         this.updateShowMoreButton();
     }
-    //Book-Preview Component
+
+    /**
+     * Creates a `book-preview` element.
+     * @param {Object} book - A book object
+     * @param {Object} authors - Mapping of author IDs to names
+     * @returns {HTMLElement} - A `book-preview` element
+     */
     createBookElement({ author, id, image, title }, authors) {
         const bookPreview = document.createElement('book-preview');
         bookPreview.setAttribute('id', id);
@@ -60,6 +82,10 @@ export default class Book {
         return bookPreview;
     }
 
+    /**
+     * Renders a fragment containing the first page of books.
+     * @returns {DocumentFragment}
+     */
     render() {
         const fragment = document.createDocumentFragment();
         this.books.slice(0, this.booksPerPage).forEach((book) => {
@@ -68,6 +94,12 @@ export default class Book {
         return fragment;
     }
 
+    /**
+     * Creates a dropdown menu from a list of options.
+     * @param {Object} options - Key-value pairs for dropdown options
+     * @param {string} firstOptionText - The default top option text
+     * @returns {DocumentFragment}
+     */
     createDropdown(options, firstOptionText) {
         const dropdownHtml = document.createDocumentFragment();
         const firstElement = document.createElement('option');
@@ -85,18 +117,25 @@ export default class Book {
         return dropdownHtml;
     }
 
+    /** @param {Object} genres - Genre options */
     genreDropdown(genres) {
         return this.createDropdown(genres, 'All Genres');
     }
 
+    /** @param {Object} authors - Author options */
     authorDropdown(authors) {
         return this.createDropdown(authors, 'All Authors');
     }
 
+    /**
+     * Filters the books based on user input from the search form.
+     * @param {Event} event - Form submit event
+     */
     search(event) {
         event.preventDefault();
         const formData = new FormData(event.target);
         const filters = Object.fromEntries(formData);
+
         const result = this.books.filter((singleBook) => {
             const genreMatch = filters.genre === 'any' || singleBook.genres.includes(filters.genre);
             const titleMatch = !filters.title.trim() || singleBook.title.toLowerCase().includes(filters.title.toLowerCase());
@@ -108,8 +147,8 @@ export default class Book {
         this.matches = result;
 
         this.elements.showListMessage.classList.toggle('list__message_show', result.length < 1);
-
         this.elements.bookListItems.innerHTML = '';
+
         const newItems = document.createDocumentFragment();
         result.slice(0, this.booksPerPage).forEach((book) => {
             newItems.appendChild(this.createBookElement(book, this.authors));
@@ -117,10 +156,14 @@ export default class Book {
 
         this.elements.bookListItems.appendChild(newItems);
         this.updateShowMoreButton();
+
         window.scrollTo({ top: 0, behavior: 'smooth' });
         this.elements.searchOverlay.open = false;
     }
 
+    /**
+     * Updates the "Show more" button state and label based on remaining books.
+     */
     updateShowMoreButton() {
         const remainingBooks = this.matches.length - this.page * this.booksPerPage;
         this.elements.showListButton.innerHTML = `
@@ -130,6 +173,10 @@ export default class Book {
         this.elements.showListButton.disabled = remainingBooks <= 0;
     }
 
+    /**
+     * Displays the summary modal of a selected book.
+     * @param {Event} event - Click event on a book preview
+     */
     summaryCard(event) {
         const pathArray = Array.from(event.path || event.composedPath());
         let active = null;
@@ -151,8 +198,12 @@ export default class Book {
         }
     }
 
+    /**
+     * Appends the next page of books to the current list.
+     */
     showMore() {
         const fragment = document.createDocumentFragment();
+
         this.matches
             .slice(this.page * this.booksPerPage, (this.page + 1) * this.booksPerPage)
             .forEach((book) => {

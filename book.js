@@ -35,6 +35,7 @@ export default class Book {
     }
 
     init() {
+        this.#matches = this.books;
         const bookFragment = this.render(); // Render books for the first page
         const createGenreDropdown = this.genreDropdown(this.genres); // Create the genre dropdown menu
         const createAuthorDropdown = this.authorDropdown(this.authors); // Create the author dropdown menu

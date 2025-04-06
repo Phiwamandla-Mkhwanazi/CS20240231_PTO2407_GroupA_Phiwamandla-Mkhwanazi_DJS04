@@ -10,19 +10,19 @@
  *
  * Example usage in HTML:
  * ```html
- * <book-preview 
- *    image="cover.jpg" 
- *    title="Book Title" 
- *    author="Author Name" 
+ * <book-preview
+ *    image="cover.jpg"
+ *    title="Book Title"
+ *    author="Author Name"
  *    id="book123">
  * </book-preview>
  * ```
  */
 class BookPreview extends HTMLElement {
   constructor() {
-      super();
-      /** Attaches a shadow DOM to encapsulate styles and markup */
-      this.attachShadow({ mode: 'open' });
+    super();
+    /** Attaches a shadow DOM to encapsulate styles and markup */
+    this.attachShadow({ mode: "open" });
   }
 
   /**
@@ -30,12 +30,12 @@ class BookPreview extends HTMLElement {
    * Sets up the inner HTML structure and styles using the provided attributes.
    */
   connectedCallback() {
-      const image = this.getAttribute('image');
-      const title = this.getAttribute('title');
-      const author = this.getAttribute('author');
-      const id = this.getAttribute('id');
+    const image = this.getAttribute("image");
+    const title = this.getAttribute("title");
+    const author = this.getAttribute("author");
+    const id = this.getAttribute("id");
 
-      this.shadowRoot.innerHTML = `
+    this.shadowRoot.innerHTML = `
           <style>
               /* Copied from the given styles file */
 
@@ -109,4 +109,4 @@ class BookPreview extends HTMLElement {
 }
 
 // Register the custom element with the browser
-customElements.define('book-preview', BookPreview);
+customElements.define("book-preview", BookPreview);

@@ -3,18 +3,15 @@ import { books, authors, genres} from './data.js';
 import Elements from './elements.js';
 import Book from './book.js';
 import EventListeners from './eventListeners.js';
+import ThemeManager from './theme.js';
 
 //Encapsulation
 const uiElements = new Elements();
 // Destructuring the elements object to simplify access
 const 
 {
-
-    settingsTheme,
     searchGenresSelect,
     searchAuthorsSelect,
-    settingsOverlay,
-    settingsForm,
     bookListItems,
     showListButton,
 } = uiElements.elements;
@@ -37,87 +34,9 @@ searchAuthorsSelect.appendChild(createAuthorDropdown);
 // Update the "Show More" button with the correct remaining items based on the current page and total matches
 book.updateShowMoreButton(showListButton);
 
+const theme = new ThemeManager(Elements);
 
-/*-----------------------------------------------Theme Object------------------------------------------------------------ */
-/**
- * @namespace ThemeManager
- *
- * This module handles the theme management for the web application, including applying
- * light or dark themes based on user preference or system settings.
- */
-const ThemeManager = {
-    init() {
-        if (
-            window.matchMedia &&
-            window.matchMedia('(prefers-color-scheme: dark)').matches
-        ) {
-            settingsTheme.value = 'night';
-            this.applyTheme('night');
-        } else {
-            settingsTheme.value = 'day';
-            this.applyTheme('day');
-        }
-    },
+new EventListeners(book, books,Elements, theme);
 
-    /**
-     * Applies the specified theme by adjusting CSS custom properties (variables) for dark or light modes.
-     *
-     * @param {string} theme - The theme to apply. Can be either 'night' or 'day'.
-     */
-    applyTheme(theme) {
-        if (theme === 'night') {
-            document.documentElement.style.setProperty(
-                '--color-dark',
-                '255, 255, 255'
-            );
-            document.documentElement.style.setProperty(
-                '--color-light',
-                '10, 10, 20'
-            );
-        } else {
-            document.documentElement.style.setProperty(
-                '--color-dark',
-                '10, 10, 20'
-            );
-            document.documentElement.style.setProperty(
-                '--color-light',
-                '255, 255, 255'
-            );
-        }
-    },
-
-    /**
-     * Handles theme change when the user selects a new theme in the settings.
-     * It updates the theme and closes the settings overlay.
-     *
-     * @param {Event} event - The submit event triggered when the user selects a new theme.
-     * @listens submit
-     */
-    handleThemeChange(event) {
-        event.preventDefault();
-        const formData = new FormData(event.target);
-        const { theme } = Object.fromEntries(formData);
-        this.applyTheme(theme);
-        settingsOverlay.open = false;
-    },
-};
-
-/*-----------------------------------------------Event Listeners for UI (Cards) Interactions--------------------------------------------------------- */
-
-new EventListeners(book, books,Elements);
-
-/*----------------------------------------------------Main Program Execution--------------------------------------------------------- */
-/**
- * Initializes the page and book listings by rendering the initial set of books and setting up event listeners.
- * This also handles the initialization of the theme, dropdown menus for genres and authors,
- * and updates the "Show More" button functionality.
- */
-
-// Initializes the theme based on user/system preference
-ThemeManager.init();
-// Sets up the event listener for the theme change form submission
-settingsForm.addEventListener('submit', (event) =>
-    ThemeManager.handleThemeChange(event)
-);
 
 

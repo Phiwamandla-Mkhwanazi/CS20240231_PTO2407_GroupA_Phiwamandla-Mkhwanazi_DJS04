@@ -1,11 +1,11 @@
-
 export default class EventListeners 
 {
-    constructor(bookInstance, booksData, Elements) 
+    constructor(bookInstance, booksData, Elements, theme) 
     {
         this.elEvent = new Elements().elements;
         this.book = bookInstance;
         this.books = booksData;
+        this.theme = theme;
 
         this.init(); // call after initializing everything
     }
@@ -51,6 +51,12 @@ export default class EventListeners
 
         this.elEvent.listCloseButton.addEventListener('click', () => {
             this.elEvent.listActive.open = false;
+        });
+
+        this.elEvent.settingsForm.addEventListener('submit', (event) => {
+            console.log('submitted successfully')
+            this.theme.handleThemeChange(event);
+        
         });
     }
 }

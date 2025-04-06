@@ -1,3 +1,5 @@
+//import the book preview class for the web component
+import './bookPreview.js'
 export default class Book {
     #page = 1;
     #matches = [];
@@ -47,19 +49,14 @@ export default class Book {
         // Update the "Show More" button with the correct remaining items based on the current page and total matches
         this.updateShowMoreButton();
     }
-
+    //Book-Preview Component
     createBookElement({ author, id, image, title }, authors) {
-        const element = document.createElement('button');
-        element.classList.add('preview');
-        element.setAttribute('data-preview', id);
-        element.innerHTML = `
-            <img class="preview__image" src="${image}" />
-            <div class="preview__info">
-                <h3 class="preview__title">${title}</h3>
-                <div class="preview__author">${authors[author]}</div>
-            </div>
-        `;
-        return element;
+        const bookPreview = document.createElement('book-preview');
+        bookPreview.setAttribute('id', id);
+        bookPreview.setAttribute('image', image);
+        bookPreview.setAttribute('title', title);
+        bookPreview.setAttribute('author', authors[author]);
+        return bookPreview;
     }
 
     render() {

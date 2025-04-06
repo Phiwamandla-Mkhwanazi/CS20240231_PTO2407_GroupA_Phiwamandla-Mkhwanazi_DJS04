@@ -7,7 +7,7 @@ export default class EventListeners
         this.books = booksData;
         this.theme = theme;
 
-        this.init(); // call after initializing everything
+        this.init(); 
     }
     init()
     {
@@ -43,10 +43,7 @@ export default class EventListeners
         });
 
         this.elEvent.showListButton.addEventListener('click', () => {
-            this.book.ShowMore(
-                this.elEvent.showListButton,
-                this.elEvent.bookListItems
-            );
+            this.book.showMore();
         });
 
         this.elEvent.listCloseButton.addEventListener('click', () => {
@@ -54,9 +51,7 @@ export default class EventListeners
         });
 
         this.elEvent.settingsForm.addEventListener('submit', (event) => {
-            console.log('submitted successfully')
             this.theme.handleThemeChange(event);
-        
         });
     }
 }

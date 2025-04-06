@@ -1,13 +1,15 @@
-import { books, authors, BOOKS_PER_PAGE } from './data.js';
-import Elements from './elements.js';
-
 export default class Book {
     #page = 1;
-    #matches = books;
+    #matches = [];
 
-    constructor() {
-        this.booksPerPage = BOOKS_PER_PAGE;
+    constructor(books, authors,genres, BOOKS_PER_PAGE, Elements) {
+        this.books = books;
         this.authors = authors;
+        this.genres = genres;
+        this.booksPerPage = BOOKS_PER_PAGE;
+
+        this.elements = new Elements().elements; // Initialize elements from the passed Elements class
+        this.init(); // Initialize the UI elements and render the first page
     }
 
     get page() {
@@ -30,6 +32,22 @@ export default class Book {
         this.#matches = newMatches;
     }
 
+    init() {
+        const bookFragment = this.render(); // Render books for the first page
+        const createGenreDropdown = this.genreDropdown(this.genres); // Create the genre dropdown menu
+        const createAuthorDropdown = this.authorDropdown(this.authors); // Create the author dropdown menu
+
+        // Append the rendered book listings to the UI
+        this.elements.bookListItems.appendChild(bookFragment);
+
+        // Append the genre and author dropdown menus to the search form
+        this.elements.searchGenresSelect.appendChild(createGenreDropdown);
+        this.elements.searchAuthorsSelect.appendChild(createAuthorDropdown);
+
+        // Update the "Show More" button with the correct remaining items based on the current page and total matches
+        this.updateShowMoreButton();
+    }
+
     createBookElement({ author, id, image, title }, authors) {
         const element = document.createElement('button');
         element.classList.add('preview');
@@ -46,8 +64,8 @@ export default class Book {
 
     render() {
         const fragment = document.createDocumentFragment();
-        books.slice(0, this.booksPerPage).forEach((book) => {
-            fragment.appendChild(this.createBookElement(book, authors));
+        this.books.slice(0, this.booksPerPage).forEach((book) => {
+            fragment.appendChild(this.createBookElement(book, this.authors));
         });
         return fragment;
     }
@@ -77,17 +95,11 @@ export default class Book {
         return this.createDropdown(authors, 'All Authors');
     }
 
-    search(
-        event,
-        books,
-        bookListItems,
-        showListMessage,
-        showListButton
-    ) {
+    search(event) {
         event.preventDefault();
         const formData = new FormData(event.target);
         const filters = Object.fromEntries(formData);
-        const result = books.filter((singleBook) => {
+        const result = this.books.filter((singleBook) => {
             const genreMatch = filters.genre === 'any' || singleBook.genres.includes(filters.genre);
             const titleMatch = !filters.title.trim() || singleBook.title.toLowerCase().includes(filters.title.toLowerCase());
             const authorMatch = filters.author === 'any' || singleBook.author === filters.author;
@@ -97,27 +109,27 @@ export default class Book {
         this.resetPage();
         this.matches = result;
 
-        showListMessage.classList.toggle('list__message_show', result.length < 1);
+        this.elements.showListMessage.classList.toggle('list__message_show', result.length < 1);
 
-        bookListItems.innerHTML = '';
+        this.elements.bookListItems.innerHTML = '';
         const newItems = document.createDocumentFragment();
         result.slice(0, this.booksPerPage).forEach((book) => {
-            newItems.appendChild(this.createBookElement(book, authors));
+            newItems.appendChild(this.createBookElement(book, this.authors));
         });
 
-        bookListItems.appendChild(newItems);
-        this.updateShowMoreButton(showListButton);
+        this.elements.bookListItems.appendChild(newItems);
+        this.updateShowMoreButton();
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        Elements.searchOverlay.open = false;
+        this.elements.searchOverlay.open = false;
     }
 
-    updateShowMoreButton(showListButton) {
+    updateShowMoreButton() {
         const remainingBooks = this.matches.length - this.page * this.booksPerPage;
-        showListButton.innerHTML = `
+        this.elements.showListButton.innerHTML = `
             <span>Show more</span>
             <span class="list__remaining"> (${remainingBooks > 0 ? remainingBooks : 0})</span>
         `;
-        showListButton.disabled = remainingBooks <= 0;
+        this.elements.showListButton.disabled = remainingBooks <= 0;
     }
 
     summaryCard(event) {
@@ -126,27 +138,22 @@ export default class Book {
 
         for (const node of pathArray) {
             if (node?.dataset?.preview) {
-                active = books.find((book) => book.id === node.dataset.preview);
+                active = this.books.find((book) => book.id === node.dataset.preview);
                 if (active) break;
             }
         }
 
-        if (active) 
-        {
-            const elements = new Elements(); //Will enhance later - It creates an instance everytime
-            const elSummary = elements.elements; 
-
-            elSummary.listActive.open = true;
-            elSummary.bookListBlur.src = active.image;
-            elSummary.bookListImage.src = active.image;
-            elSummary.bookListTitle.innerText = active.title;
-            elSummary.bookListSubtitle.innerText = `${authors[active.author]} (${new Date(active.published).getFullYear()})`;
-            elSummary.bookListDescription.innerText = active.description;
-            
+        if (active) {
+            this.elements.listActive.open = true;
+            this.elements.bookListBlur.src = active.image;
+            this.elements.bookListImage.src = active.image;
+            this.elements.bookListTitle.innerText = active.title;
+            this.elements.bookListSubtitle.innerText = `${this.authors[active.author]} (${new Date(active.published).getFullYear()})`;
+            this.elements.bookListDescription.innerText = active.description;
         }
     }
 
-    ShowMore(showListButton, bookListItems) {
+    showMore() {
         const fragment = document.createDocumentFragment();
         this.matches
             .slice(this.page * this.booksPerPage, (this.page + 1) * this.booksPerPage)
@@ -154,8 +161,8 @@ export default class Book {
                 fragment.appendChild(this.createBookElement(book, this.authors));
             });
 
-        bookListItems.appendChild(fragment);
+        this.elements.bookListItems.appendChild(fragment);
         this.incrementPage();
-        this.updateShowMoreButton(showListButton);
+        this.updateShowMoreButton();
     }
 }
